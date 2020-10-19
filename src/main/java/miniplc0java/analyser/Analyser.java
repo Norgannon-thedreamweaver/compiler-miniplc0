@@ -225,11 +225,38 @@ public final class Analyser {
     }
 
     private void analyseVariableDeclaration() throws CompileError {
-        throw new Error("Not implemented");
+        while (nextIf(TokenType.Var) != null) {
+            // 变量名
+            var nameToken = expect(TokenType.Ident);
+            // 等于号
+            expect(TokenType.Equal);
+
+            if (nextIf(TokenType.Equal) != null){// 初始化
+                analyseExpression();
+            }
+            else{// 不初始化
+                break;
+            }
+            // 分号
+            expect(TokenType.Semicolon);
+        }
     }
 
     private void analyseStatementSequence() throws CompileError {
-        throw new Error("Not implemented");
+        while (true) {
+            if(check(TokenType.Ident)){//赋值语句
+                
+            }
+            else if(check(TokenType.Print)){//输出语句
+                analyseOutputStatement();
+            }
+            else if(check(TokenType.Semicolon)){//空语句
+                expect(TokenType.Semicolon);
+            }
+            else {
+                break;
+            }
+        }
     }
 
     private void analyseStatement() throws CompileError {

@@ -72,19 +72,19 @@ public class Tokenizer {
         while(Character.isAlphabetic(it.peekChar()) || Character.isDigit(it.peekChar())){
             str.append(it.nextChar());
         }
-        if(str.toString().equals("begin"))
-            return new Token(TokenType.Begin, "begin", start, it.currentPos());
-        else if(str.toString().equals("end"))
-            return new Token(TokenType.End, "end", start, it.currentPos());
-        else if(str.toString().equals("const"))
-            return new Token(TokenType.Const, "const", start, it.currentPos());
-        else if(str.toString().equals("var"))
-            return new Token(TokenType.Var, "var", start, it.currentPos());
-        else if(str.toString().equals("print"))
-            return new Token(TokenType.Print, "print", start, it.currentPos());
+        String s=str.toString();
+        if(s.equals("BEGIN"))
+            return new Token(TokenType.Begin, s, start, it.currentPos());
+        else if(s.equals("END"))
+            return new Token(TokenType.End, s, start, it.currentPos());
+        else if(s.equals("CONST"))
+            return new Token(TokenType.Const,s, start, it.currentPos());
+        else if(s.equals("VAR"))
+            return new Token(TokenType.Var, s, start, it.currentPos());
+        else if(s.equals("PRINT"))
+            return new Token(TokenType.Print, s, start, it.currentPos());
 
-        
-            return new Token(TokenType.Ident, str.toString(), start, it.currentPos());
+        return new Token(TokenType.Ident, s, start, it.currentPos());
     }
 
     private Token lexOperatorOrUnknown() throws TokenizeError {
