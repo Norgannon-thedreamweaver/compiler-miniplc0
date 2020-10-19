@@ -1,5 +1,6 @@
 package miniplc0java.tokenizer;
 
+import miniplc0java.util.Pos;
 import miniplc0java.error.TokenizeError;
 import miniplc0java.error.ErrorCode;
 
@@ -47,11 +48,13 @@ public class Tokenizer {
         // 解析成功则返回无符号整数类型的token，否则返回编译错误
         //
         // Token 的 Value 应填写数字的值
+        Pos start=it.currentPos();
         StringBuilder str=new StringBuilder();
-        for (int i = 0; i < n; i++) {
-            sb.append("."+i);
+        while(Character.isDigit(it.peekChar())){
+            str.append(it.nextChar());
         }
-        throw new Error("Not implemented");
+
+        return new Token(TokenType.Uint, Integer.valueOf(str.toString()), start, it.currentPos());
     }
 
     private Token lexIdentOrKeyword() throws TokenizeError {
@@ -64,7 +67,24 @@ public class Tokenizer {
         // -- 否则，返回标识符
         //
         // Token 的 Value 应填写标识符或关键字的字符串
-        throw new Error("Not implemented");
+        Pos start=it.currentPos();
+        StringBuilder str=new StringBuilder();
+        while(Character.isAlphabetic(it.peekChar()) || Character.isDigit(it.peekChar())){
+            str.append(it.nextChar());
+        }
+        if(str.toString().equals("begin"))
+            return new Token(TokenType.Begin, "begin", start, it.currentPos());
+        else if(str.toString().equals("end"))
+            return new Token(TokenType.End, "end", start, it.currentPos());
+        else if(str.toString().equals("const"))
+            return new Token(TokenType.Const, "const", start, it.currentPos());
+        else if(str.toString().equals("var"))
+            return new Token(TokenType.Var, "var", start, it.currentPos());
+        else if(str.toString().equals("print"))
+            return new Token(TokenType.Print, "print", start, it.currentPos());
+
+        
+            return new Token(TokenType.Ident, str.toString(), start, it.currentPos());
     }
 
     private Token lexOperatorOrUnknown() throws TokenizeError {
@@ -87,10 +107,10 @@ public class Tokenizer {
             case ';':
                 return new Token(TokenType.Semicolon, ';', it.previousPos(), it.currentPos());
 
-            case ';':
+            case '(':
                 return new Token(TokenType.LParen, '(', it.previousPos(), it.currentPos());
 
-            case ';':
+            case ')':
                 return new Token(TokenType.RParen, ')', it.previousPos(), it.currentPos());
 
             // 填入更多状态和返回语句
