@@ -73,15 +73,15 @@ public class Tokenizer {
             str.append(it.nextChar());
         }
         String s=str.toString();
-        if(s.toUpperCase().equals("BEGIN"))
+        if(s.equals("BEGIN"))
             return new Token(TokenType.Begin, s, start, it.currentPos());
-        else if(s.toUpperCase().equals("END"))
+        else if(s.equals("END"))
             return new Token(TokenType.End, s, start, it.currentPos());
-        else if(s.toUpperCase().equals("CONST"))
+        else if(s.equals("CONST"))
             return new Token(TokenType.Const,s, start, it.currentPos());
-        else if(s.toUpperCase().equals("VAR"))
+        else if(s.equals("VAR"))
             return new Token(TokenType.Var, s, start, it.currentPos());
-        else if(s.toUpperCase().equals("PRINT"))
+        else if(s.equals("PRINT"))
             return new Token(TokenType.Print, s, start, it.currentPos());
 
         return new Token(TokenType.Ident, s, start, it.currentPos());

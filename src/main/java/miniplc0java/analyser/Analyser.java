@@ -203,7 +203,9 @@ public final class Analyser {
     }
 
     private void analyseMain() throws CompileError {
-        throw new Error("Not implemented");
+        analyseConstantDeclaration();
+        analyseVariableDeclaration();
+        analyseStatementSequence();
     }
 
     private void analyseConstantDeclaration() throws CompileError {
@@ -212,13 +214,16 @@ public final class Analyser {
         while (nextIf(TokenType.Const) != null) {
             // 变量名
             var nameToken = expect(TokenType.Ident);
-
+            addSymbol(nameToken.getValueString(),false, true, nameToken.getStartPos());
+            instructions.add(new Instruction(Operation.LIT, 0));
             // 等于号
             expect(TokenType.Equal);
 
             // 常表达式
             analyseConstantExpression();
 
+            instructions.add(new Instruction(Operation.STO, getOffset(nameToken.getValueString(),nameToken.getStartPos())));
+            declareSymbol(nameToken.getValueString(),nameToken.getStartPos());
             // 分号
             expect(TokenType.Semicolon);
         }
@@ -228,15 +233,17 @@ public final class Analyser {
         while (nextIf(TokenType.Var) != null) {
             // 变量名
             var nameToken = expect(TokenType.Ident);
+            addSymbol(nameToken.getValueString(),false, false, nameToken.getStartPos());
+            instructions.add(new Instruction(Operation.LIT, 0));
             // 等于号
             expect(TokenType.Equal);
 
             if (nextIf(TokenType.Equal) != null){// 初始化
                 analyseExpression();
+                instructions.add(new Instruction(Operation.STO, getOffset(nameToken.getValueString(),nameToken.getStartPos())));
+                declareSymbol(nameToken.getValueString(),nameToken.getStartPos());
             }
-            else{// 不初始化
-                break;
-            }
+            
             // 分号
             expect(TokenType.Semicolon);
         }
@@ -264,7 +271,31 @@ public final class Analyser {
     }
 
     private void analyseConstantExpression() throws CompileError {
-        throw new Error("Not implemented");
+        boolean negate;
+        if (nextIf(TokenType.Minus) != null) {
+            negate = true;
+            // 计算结果需要被 0 减
+            instructions.add(new Instruction(Operation.LIT, 0));
+        } 
+        else {
+            nextIf(TokenType.Plus);
+            negate = false;
+        }
+
+        if (check(TokenType.Ident)) {
+            var uintToken = expect(TokenType.Uint);
+            if(((Integer)uintToken.getValue()).intValue()>Integer.MAX_VALUE || ((Integer)uintToken.getValue()).intValue()<0)
+                throw new Error("IntegerOverflow");
+            instructions.add(new Instruction(Operation.LIT,(Integer)uintToken.getValue()));
+        }
+        else {
+            // 都不是，摸了
+            throw new ExpectedTokenError(List.of(TokenType.Uint), next());
+        }
+
+        if (negate) {
+            instructions.add(new Instruction(Operation.SUB));
+        }
     }
 
     private void analyseExpression() throws CompileError {
@@ -301,11 +332,20 @@ public final class Analyser {
 
         if (check(TokenType.Ident)) {
             // 调用相应的处理函数
-        } else if (check(TokenType.Uint)) {
+        } 
+        else if (check(TokenType.Uint)) {
             // 调用相应的处理函数
-        } else if (check(TokenType.LParen)) {
-            // 调用相应的处理函数
-        } else {
+            var uintToken = expect(TokenType.Uint);
+            if(((Integer)uintToken.getValue()).intValue()>Integer.MAX_VALUE || ((Integer)uintToken.getValue()).intValue()<0)
+                throw new Error("IntegerOverflow");
+            instructions.add(new Instruction(Operation.LIT,(Integer)uintToken.getValue()));
+        } 
+        else if (check(TokenType.LParen)) {
+            expect(TokenType.LParen);
+            analyseExpression();
+            expect(TokenType.RParen);
+        } 
+        else {
             // 都不是，摸了
             throw new ExpectedTokenError(List.of(TokenType.Ident, TokenType.Uint, TokenType.LParen), next());
         }
@@ -313,6 +353,12 @@ public final class Analyser {
         if (negate) {
             instructions.add(new Instruction(Operation.SUB));
         }
-        throw new Error("Not implemented");
+    }
+
+    private void analyseUnsignedInt() throws CompileError {
+        var uintToken = expect(TokenType.Uint);
+        if(((Integer)uintToken.getValue()).intValue()>Integer.MAX_VALUE || ((Integer)uintToken.getValue()).intValue()<0)
+            throw new Error("IntegerOverflow");
+        instructions.add(new Instruction(Operation.LIT,(Integer)uintToken.getValue()));
     }
 }
