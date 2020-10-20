@@ -221,6 +221,7 @@ public final class Analyser {
 
             // 常表达式
             analyseConstantExpression();
+            
 
             instructions.add(new Instruction(Operation.STO, getOffset(nameToken.getValueString(),nameToken.getStartPos())));
             declareSymbol(nameToken.getValueString(),nameToken.getStartPos());
@@ -236,8 +237,7 @@ public final class Analyser {
             addSymbol(nameToken.getValueString(),false, false, nameToken.getStartPos());
             instructions.add(new Instruction(Operation.LIT, 0));
             // 等于号
-            expect(TokenType.Equal);
-
+            
             if (nextIf(TokenType.Equal) != null){// 初始化
                 analyseExpression();
                 instructions.add(new Instruction(Operation.STO, getOffset(nameToken.getValueString(),nameToken.getStartPos())));
@@ -306,7 +306,7 @@ public final class Analyser {
             else if(check(TokenType.Minus)){//输出语句
                 expect(TokenType.Minus);
                 analyseItem();
-                instructions.add(new Instruction(Operation.ADD));
+                instructions.add(new Instruction(Operation.SUB));
             }
             else {
                 break;
@@ -319,6 +319,7 @@ public final class Analyser {
         expect(TokenType.Equal);
         analyseExpression();
         assignIdent(nameToken);
+        expect(TokenType.Semicolon);
     }
 
     private void analyseOutputStatement() throws CompileError {
