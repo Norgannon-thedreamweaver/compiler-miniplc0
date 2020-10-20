@@ -282,13 +282,7 @@ public final class Analyser {
             negate = false;
         }
 
-        if (check(TokenType.Uint)) {
-            analyseUnsignedInt();
-        }
-        else {
-            // 都不是，摸了
-            throw new ExpectedTokenError(List.of(TokenType.Uint), next());
-        }
+        analyseUnsignedInt();
 
         if (negate) {
             instructions.add(new Instruction(Operation.SUB));
