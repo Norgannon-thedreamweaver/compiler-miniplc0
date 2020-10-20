@@ -282,7 +282,7 @@ public final class Analyser {
             negate = false;
         }
 
-        if (check(TokenType.Ident)) {
+        if (check(TokenType.Uint)) {
             analyseUnsignedInt();
         }
         else {
