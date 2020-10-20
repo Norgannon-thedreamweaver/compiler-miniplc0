@@ -252,7 +252,7 @@ public final class Analyser {
     private void analyseStatementSequence() throws CompileError {
         while (true) {
             if(check(TokenType.Ident)){//赋值语句
-                
+                analyseAssignmentStatement();
             }
             else if(check(TokenType.Print)){//输出语句
                 analyseOutputStatement();
@@ -283,10 +283,7 @@ public final class Analyser {
         }
 
         if (check(TokenType.Ident)) {
-            var uintToken = expect(TokenType.Uint);
-            if(((Integer)uintToken.getValue()).intValue()>Integer.MAX_VALUE || ((Integer)uintToken.getValue()).intValue()<0)
-                throw new Error("IntegerOverflow");
-            instructions.add(new Instruction(Operation.LIT,(Integer)uintToken.getValue()));
+            analyseUnsignedInt();
         }
         else {
             // 都不是，摸了
@@ -299,11 +296,29 @@ public final class Analyser {
     }
 
     private void analyseExpression() throws CompileError {
-        throw new Error("Not implemented");
+        analyseItem();
+        while (true) {
+            if(check(TokenType.Plus)){//赋值语句
+                expect(TokenType.Plus);
+                analyseItem();
+                instructions.add(new Instruction(Operation.ADD));
+            }
+            else if(check(TokenType.Minus)){//输出语句
+                expect(TokenType.Minus);
+                analyseItem();
+                instructions.add(new Instruction(Operation.ADD));
+            }
+            else {
+                break;
+            }
+        }
     }
 
     private void analyseAssignmentStatement() throws CompileError {
-        throw new Error("Not implemented");
+        var nameToken = expect(TokenType.Ident);
+        expect(TokenType.Equal);
+        analyseExpression();
+        assignIdent(nameToken);
     }
 
     private void analyseOutputStatement() throws CompileError {
@@ -316,7 +331,22 @@ public final class Analyser {
     }
 
     private void analyseItem() throws CompileError {
-        throw new Error("Not implemented");
+        analyseFactor();
+        while (true) {
+            if(check(TokenType.Mult)){//赋值语句
+                expect(TokenType.Mult);
+                analyseFactor();
+                instructions.add(new Instruction(Operation.MUL));
+            }
+            else if(check(TokenType.Div)){//输出语句
+                expect(TokenType.Div);
+                analyseFactor();
+                instructions.add(new Instruction(Operation.DIV));
+            }
+            else {
+                break;
+            }
+        }
     }
 
     private void analyseFactor() throws CompileError {
@@ -331,14 +361,10 @@ public final class Analyser {
         }
 
         if (check(TokenType.Ident)) {
-            // 调用相应的处理函数
+            useIdent();
         } 
         else if (check(TokenType.Uint)) {
-            // 调用相应的处理函数
-            var uintToken = expect(TokenType.Uint);
-            if(((Integer)uintToken.getValue()).intValue()>Integer.MAX_VALUE || ((Integer)uintToken.getValue()).intValue()<0)
-                throw new Error("IntegerOverflow");
-            instructions.add(new Instruction(Operation.LIT,(Integer)uintToken.getValue()));
+            analyseUnsignedInt();
         } 
         else if (check(TokenType.LParen)) {
             expect(TokenType.LParen);
@@ -358,7 +384,27 @@ public final class Analyser {
     private void analyseUnsignedInt() throws CompileError {
         var uintToken = expect(TokenType.Uint);
         if(((Integer)uintToken.getValue()).intValue()>Integer.MAX_VALUE || ((Integer)uintToken.getValue()).intValue()<0)
-            throw new Error("IntegerOverflow");
+            throw new AnalyzeError(ErrorCode.IntegerOverflow, uintToken.getStartPos());
         instructions.add(new Instruction(Operation.LIT,(Integer)uintToken.getValue()));
+    }
+
+    private void assignIdent(Token nameToken) throws CompileError {
+        var entry = this.symbolTable.get(nameToken.getValueString());
+        if(entry==null)//是否声明
+            throw new AnalyzeError(ErrorCode.NotDeclared, nameToken.getStartPos());
+        if(entry.isConstant())//是否是常亮
+            throw new AnalyzeError(ErrorCode.AssignToConstant, nameToken.getStartPos());
+            
+        instructions.add(new Instruction(Operation.STO, entry.getStackOffset()));
+    }
+    private void useIdent() throws CompileError {
+        var nameToken = expect(TokenType.Ident);
+        var entry = this.symbolTable.get(nameToken.getValueString());
+        if(entry==null)//是否声明
+            throw new AnalyzeError(ErrorCode.NotDeclared, nameToken.getStartPos());
+        if(!entry.isInitialized())//是否初始化
+            throw new AnalyzeError(ErrorCode.NotInitialized, nameToken.getStartPos());
+            
+        instructions.add(new Instruction(Operation.LOD, entry.getStackOffset()));
     }
 }
