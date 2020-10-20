@@ -328,12 +328,12 @@ public final class Analyser {
     private void analyseItem() throws CompileError {
         analyseFactor();
         while (true) {
-            if(check(TokenType.Mult)){//赋值语句
+            if(check(TokenType.Mult)){
                 expect(TokenType.Mult);
                 analyseFactor();
                 instructions.add(new Instruction(Operation.MUL));
             }
-            else if(check(TokenType.Div)){//输出语句
+            else if(check(TokenType.Div)){
                 expect(TokenType.Div);
                 analyseFactor();
                 instructions.add(new Instruction(Operation.DIV));
